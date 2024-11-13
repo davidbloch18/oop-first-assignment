@@ -1,7 +1,8 @@
 import java.util.*;
 
 /**
- * Represents an AI player in the game. The logic for making a move will be based
+ * Represents an AI player in the game. The logic for making a move will be
+ * based
  * on AI algorithms such as minimax or heuristic-based decision-making.
  */
 public abstract class AIPlayer extends Player {
@@ -10,6 +11,7 @@ public abstract class AIPlayer extends Player {
         registerAIPlayerType("GreedyAI", GreedyAI.class);
         // Add more AIPlayer subclasses here as needed
     }
+
     @Override
     public boolean isHuman() {
         return false;
@@ -44,5 +46,6 @@ public abstract class AIPlayer extends Player {
     public static List<String> getAIPlayerTypes() {
         return new ArrayList<>(aiPlayerRegistry.keySet());
     }
+
     public abstract Move makeMove(PlayableLogic gameStatus);
 }
