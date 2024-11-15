@@ -40,6 +40,7 @@ public class Main {
         });
 
     }
+
     private static Player[] initializePlayers(JFrame parent) {
         PlayerSelectionDialog dialog = new PlayerSelectionDialog(parent);
         dialog.setVisible(true);
@@ -47,13 +48,13 @@ public class Main {
         boolean isFirstPlayerHuman = dialog.isFirstPlayerHuman();
         boolean isSecondPlayerHuman = dialog.isSecondPlayerHuman();
 
-        Player firstPlayer = isFirstPlayerHuman ? new HumanPlayer(true) : AIPlayer.createAIPlayer(dialog.getSelectedFirstPlayerAI(), true);
-        Player secondPlayer = isSecondPlayerHuman ? new HumanPlayer(false) : AIPlayer.createAIPlayer(dialog.getSelectedSecondPlayerAI(), false);
+        Player firstPlayer = isFirstPlayerHuman ? new HumanPlayer(true)
+                : AIPlayer.createAIPlayer(dialog.getSelectedFirstPlayerAI(), true);
+        Player secondPlayer = isSecondPlayerHuman ? new HumanPlayer(false)
+                : AIPlayer.createAIPlayer(dialog.getSelectedSecondPlayerAI(), false);
 
-        return new Player[]{firstPlayer, secondPlayer};
+        return new Player[] { firstPlayer, secondPlayer };
     }
-
-
 
     public static class PlayerSelectionDialog extends JDialog {
         private boolean isFirstPlayerHuman;
@@ -119,6 +120,5 @@ public class Main {
             return selectedSecondPlayerAI;
         }
     }
-
 
 }

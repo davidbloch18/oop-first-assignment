@@ -34,6 +34,6 @@ public class RandomAI extends AIPlayer {
             chosenDisc = new SimpleDisc(this);
         }
 
-        return new Move(this, chosenDisc, chosenPosition, gameStatus.countFlips(chosenPosition));
+        return new Move(this, chosenDisc, chosenPosition);
     }
 }

@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.text.Position;
 
 public class GreedyAI extends AIPlayer {
 
@@ -53,26 +52,20 @@ public class GreedyAI extends AIPlayer {
             reduce_unflippedable();
         }
 
-        return new Move(this, bestDisc, bestPosition, maxFlips);
+        return new Move(this, bestDisc, bestPosition);
     }
 
-    return null; // No valid move found
-
     /**
-     * Returns a list of available discs that the AI player can place.
-     * This should return new instances of each disc type the AI can use.
+     * Calculates the flips for a BombDisc by considering adjacent discs.
+     *
+     * @param gameStatus The current game state.
+     * @param position   The position where the BombDisc is placed.
+     * @return The number of adjacent discs that would be flipped.
      */
-    private List<Disc> getPossibleDiscs() {
-        List<Disc> discs = new ArrayList<>();
-        if (getNumber_of_bombs() > 0) {
-            discs.add(new BombDisc(this));
-        }
-        if (getNumber_of_unflippedable() > 0) {
-            discs.add(new UnflippableDisc(this));
-        }
-        discs.add(new SimpleDisc(this)); // Simple discs are always available
-        return discs;
-   
-      }
-
+    private int calculateNeighborFlips(PlayableLogic gameStatus, Position position) {
+        // Implement logic to count adjacent flips (based on the game rules for
+        // BombDisc).
+        // Placeholder example
+        return 0;
+    }
 }
