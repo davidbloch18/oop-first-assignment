@@ -11,17 +11,33 @@ public class GameLogic extends Position implements PlayableLogic {
     private List<Disc> currentFlippedDiscs;
 
     public GameLogic() {
-        this(8, 0, 0); // Initialize an 8x8 board, example start at (0, 0)
+        this(8, 0, 0, true, "GreedyAI"); // Default: Player 1 human, Player 2 is GreedyAI
     }
 
-    public GameLogic(int boardSize, int row, int col) {
+    public GameLogic(int boardSize, int row, int col, boolean isPlayerOneHuman, String player2AIType) {
         super(row, col);
         this.board = new Disc[boardSize][boardSize];
         this.moveHistory = new ArrayList<>();
         this.firstPlayerTurn = true;
         this.currentFlippedDiscs = new ArrayList<>(); // Initialize the flipped discs list
 
-        // Initialize players' starting positions
+        // Initialize player1 based on whether they are human or AI
+        if (isPlayerOneHuman) {
+            player1 = new HumanPlayer(true); // Player 1 is human
+        } else {
+            player1 = AIPlayer.createAIPlayer("GreedyAI", true); // Player 1 is AI (e.g., GreedyAI)
+        }
+
+        // Initialize player2 as an AI (or human if you want to make both players human)
+        player2 = AIPlayer.createAIPlayer(player2AIType, false); // Player 2 AI (e.g., RandomAI)
+
+        // Set the "isPlayerOne" flag for player1
+        player1.isPlayerOne = true;
+
+        // Set the "isPlayerOne" flag for player2
+        player2.isPlayerOne = false;
+
+        // Initialize the board with the starting positions
         board[3][3] = new SimpleDisc(player1);
         board[4][4] = new SimpleDisc(player1);
         board[3][4] = new SimpleDisc(player2);
@@ -125,13 +141,21 @@ public class GameLogic extends Position implements PlayableLogic {
     public int countFlips(Position position) {
         int flips = 0;
         Disc currentDisc = getDiscAtPosition(position);
+
+        // Ensure currentDisc is not null before proceeding
+        if (currentDisc == null) {
+            return flips; // Return 0 flips if there's no disc at the position
+        }
+
         Player currentPlayer = currentDisc.getOwner();
 
+        // Direction vectors for checking in all 8 possible directions
         int[][] directions = {
                 { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 },
                 { -1, -1 }, { -1, 1 }, { 1, -1 }, { 1, 1 }
         };
 
+        // Check each direction for valid flips
         for (int[] dir : directions) {
             int row = position.getRow();
             int col = position.getColumn();
@@ -141,22 +165,36 @@ public class GameLogic extends Position implements PlayableLogic {
                 row += dir[0];
                 col += dir[1];
 
-                if (row < 0 || row >= board.length || col < 0 || col >= board.length)
-                    break;
+                // Check if the position is out of bounds
+                if (row < 0 || row >= board.length || col < 0 || col >= board.length) {
+                    break; // Exit the loop if out of bounds
+                }
+
                 Disc neighborDisc = getDiscAtPosition(new Position(row, col));
 
-                if (neighborDisc == null)
+                // If the neighbor is null, break out of the loop
+                if (neighborDisc == null) {
                     break;
+                }
+
+                // If the neighbor's owner is the same as the current player's, count flips
                 if (neighborDisc.getOwner().equals(currentPlayer)) {
                     flips += tempFlips;
+                    break; // Found a valid flip sequence, break out of the loop
+                }
+
+                // If the neighbor is an UnflippableDisc, stop
+                if (neighborDisc instanceof UnflippableDisc) {
                     break;
                 }
-                if (neighborDisc instanceof UnflippableDisc)
-                    break;
+
+                // If the neighbor is a BombDisc, consider adjacent flips
                 if (neighborDisc instanceof BombDisc) {
                     flips += countAdjacentFlips(new Position(row, col));
-                    break;
+                    break; // Exit after handling BombDisc
                 }
+
+                // Otherwise, continue counting potential flips
                 tempFlips++;
             }
         }
