@@ -19,9 +19,10 @@ public class GUI_for_chess_like_games extends JFrame {
     private final JLabel playerOneWinsLabel = new JLabel("Player 1 Wins: 0");
     private final JPanel mainPanel = new JPanel(new BorderLayout());
     private boolean isAITurn = false; // New flag to track AI turn
-    private boolean bombKeyPressed = false;  // To track if 'b' key is pressed
-    private boolean unflippedKeyPressed = false;  // To track if 'v' key is pressed
-    private final JSlider aiSpeedSlider = new JSlider(JSlider.VERTICAL, 0, 2000, 1000);; // Slider to control AI response speed
+    private boolean bombKeyPressed = false; // To track if 'b' key is pressed
+    private boolean unflippedKeyPressed = false; // To track if 'v' key is pressed
+    private final JSlider aiSpeedSlider = new JSlider(JSlider.VERTICAL, 0, 2000, 1000);; // Slider to control AI
+                                                                                         // response speed
     private boolean showColor = true;
     private boolean showNumbers = true;
     private final JCheckBox numbersCheckBox = new JCheckBox(new AbstractAction() {
@@ -47,8 +48,8 @@ public class GUI_for_chess_like_games extends JFrame {
 
             // If the next player is human, stop the timer
             if (currentPlayer.isHuman()) {
-                ((Timer) e.getSource()).stop();  // Stop the timer
-                isAITurn = false;  // Reset AI flag
+                ((Timer) e.getSource()).stop(); // Stop the timer
+                isAITurn = false; // Reset AI flag
             }
             updateBoard();
         }
@@ -59,7 +60,8 @@ public class GUI_for_chess_like_games extends JFrame {
     /**
      * Initializes the graphical user interface for the Chess like Games.
      *
-     * @param gameLogic The game logic instance that controls the game's logic and state.
+     * @param gameLogic The game logic instance that controls the game's logic and
+     *                  state.
      */
     public GUI_for_chess_like_games(PlayableLogic gameLogic, String title) {
         super(title);
@@ -100,8 +102,8 @@ public class GUI_for_chess_like_games extends JFrame {
                 // Start the action when the checkbox is ticked
                 showColor = !showColor;
                 // Enable it when showColor is true
-                numbersCheckBox.setEnabled(showColor);  // Disable the numbers checkbox when showColor is false
-                updateBoard();  // Call a method to update the board when checkbox is ticked
+                numbersCheckBox.setEnabled(showColor); // Disable the numbers checkbox when showColor is false
+                updateBoard(); // Call a method to update the board when checkbox is ticked
             }
         });
         colorCheckBox.setSelected(true);
@@ -123,7 +125,6 @@ public class GUI_for_chess_like_games extends JFrame {
 
         // Add the slider panel to the west of the frame
         add(sliderPanel, BorderLayout.WEST);
-
 
         // Adding the back button to the bottom of the main panel
         JButton backButton = new JButton("Back");
@@ -167,6 +168,7 @@ public class GUI_for_chess_like_games extends JFrame {
         });
         start();
     }
+
     // Set up key bindings for 'b' and 'v' keys
     private void setupKeyBindings() {
         // Get the input map for the main panel
@@ -212,6 +214,7 @@ public class GUI_for_chess_like_games extends JFrame {
 
     /**
      * This function is called when button is pressed.
+     * 
      * @param newPosition The new disc position.
      */
     private void ButtonListener(Position newPosition) {
@@ -250,16 +253,17 @@ public class GUI_for_chess_like_games extends JFrame {
             if (gameLogic.isGameFinished()) {
                 resetGame();
             }
-        }
-        else
+        } else
             return false;
         return true;
     }
 
     /**
      * Updates the game board UI to reflect the current state of the game.
-     * It updates the turn label, the button text, and the text color based on the current game state.
-     * For each cell on the board, the button's appearance and text will be updated to match the corresponding
+     * It updates the turn label, the button text, and the text color based on the
+     * current game state.
+     * For each cell on the board, the button's appearance and text will be updated
+     * to match the corresponding
      * piece's position and type. The text color is determined by the piece's owner.
      *
      * @see #updateWinsLabels(int, int)
@@ -321,10 +325,10 @@ public class GUI_for_chess_like_games extends JFrame {
             Color enhancedColor;
             if (brightness > 128) {
                 // For lighter colors (closer to white)
-                enhancedColor = new Color(199, 255, 199);  // Light green
+                enhancedColor = new Color(199, 255, 199); // Light green
             } else {
                 // For darker colors (closer to black)
-                enhancedColor = new Color(0, 100, 0);  // Dark green
+                enhancedColor = new Color(0, 100, 0); // Dark green
             }
 
             button.setBackground(enhancedColor);
@@ -335,7 +339,6 @@ public class GUI_for_chess_like_games extends JFrame {
             }
         }
     }
-
 
     private void updateWinsLabels(int attackerWins, int defenderWins) {
         playerTowWinsLabel.setText("Player 2 Wins: " + attackerWins);
@@ -359,8 +362,7 @@ public class GUI_for_chess_like_games extends JFrame {
                 // Set alternating background colors for a chessboard pattern
                 if ((row + col) % 2 != 0) {
                     buttons[row][col].setBackground(new Color(0, 0, 0));
-                }
-                else  {
+                } else {
                     buttons[row][col].setBackground(Color.WHITE);
                 }
 
@@ -389,7 +391,7 @@ public class GUI_for_chess_like_games extends JFrame {
                     int colIndex = (int) clickedButton.getClientProperty("col");
                     Position newPosition = new Position(rowIndex, colIndex);
 
-                    ButtonListener(newPosition);  // Use the updated logic
+                    ButtonListener(newPosition); // Use the updated logic
                 });
 
             }
@@ -403,6 +405,7 @@ public class GUI_for_chess_like_games extends JFrame {
         setLocationRelativeTo(null);
         setVisible(true);
     }
+
     public void resetGame() {
         gameLogic.reset();
         Player currentPlayer = gameLogic.isFirstPlayerTurn() ? gameLogic.getFirstPlayer() : gameLogic.getSecondPlayer();
@@ -415,5 +418,3 @@ public class GUI_for_chess_like_games extends JFrame {
         turnLabel.setText("Player 1's Turn");
     }
 }
-
-

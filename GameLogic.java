@@ -202,7 +202,7 @@ public class GameLogic extends Position implements PlayableLogic {
     public void undoLastMove() {
         if (!moveHistory.isEmpty()) {
             Move lastMove = moveHistory.remove(moveHistory.size() - 1);
-            board[lastMove.getPosition().getRow()][lastMove.getPosition().getColumn()] = null;
+            board[lastMove.position().getRow()][lastMove.position().getColumn()] = null;
             for (Disc flippedDisc : lastMove.getFlippedDiscs()) {
                 flippedDisc.setOwner(lastMove.getPlayer() == player1 ? player2 : player1);
             }

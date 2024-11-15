@@ -6,6 +6,15 @@ public class Move {
     private final Position position;
     private final List<Disc> flippedDiscs;
 
+    /**
+     * Constructs a Move object representing a player's move in the game.
+     * 
+     * @param player       The player making the move.
+     * @param disc         The type of disc being placed.
+     * @param position     The position on the board where the disc is placed.
+     * @param flippedDiscs The list of discs that were flipped as a result of this
+     *                     move.
+     */
     public Move(Player player, Disc disc, Position position, List<Disc> flippedDiscs) {
         this.player = player;
         this.disc = disc;
@@ -13,19 +22,46 @@ public class Move {
         this.flippedDiscs = flippedDiscs;
     }
 
+    /**
+     * Gets the player who made the move.
+     * 
+     * @return The player.
+     */
     public Player getPlayer() {
         return player;
     }
 
-    public Disc getDisc() {
+    /**
+     * Gets the disc placed in this move.
+     * 
+     * @return The disc.
+     */
+    public Disc disc() {
         return disc;
     }
 
-    public Position getPosition() {
+    /**
+     * Gets the position of this move.
+     * 
+     * @return The position.
+     */
+    public Position position() {
         return position;
     }
 
+    /**
+     * Gets the list of discs that were flipped by this move.
+     * 
+     * @return The list of flipped discs.
+     */
     public List<Disc> getFlippedDiscs() {
         return flippedDiscs;
     }
+
+    @Override
+    public String toString() {
+        return "Move by " + player + " at " + position + " with " + disc +
+                ", flipping " + flippedDiscs.size() + " discs.";
+    }
+
 }

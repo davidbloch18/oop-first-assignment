@@ -1,9 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.swing.text.Position;
-
-import java.util.List;
 
 public class GreedyAI extends AIPlayer {
 
@@ -59,20 +56,7 @@ public class GreedyAI extends AIPlayer {
         return new Move(this, bestDisc, bestPosition, maxFlips);
     }
 
-    // Helper method to calculate flips for neighbors in case of BombDisc
-    private int calculateNeighborFlips(PlayableLogic gameStatus, Position position) {
-        // Calculate additional flips due to neighboring discs being affected by a
-        // BombDisc
-        // Implement based on game rules for neighbors flipping around a BombDisc
-        return 0; // Placeholder
-    }
-
-}
-
-    }
-
     return null; // No valid move found
-    }
 
     /**
      * Returns a list of available discs that the AI player can place.
@@ -88,5 +72,7 @@ public class GreedyAI extends AIPlayer {
         }
         discs.add(new SimpleDisc(this)); // Simple discs are always available
         return discs;
-    }
+   
+      }
+
 }
