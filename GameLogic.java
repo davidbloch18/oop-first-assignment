@@ -19,52 +19,35 @@ public class GameLogic extends Position implements PlayableLogic {
         this.board = new Disc[boardSize][boardSize];
         this.moveHistory = new ArrayList<>();
         this.firstPlayerTurn = true;
-        this.currentFlippedDiscs = new ArrayList<>(); // Initialize the flipped discs list
+        this.currentFlippedDiscs = new ArrayList<>();
 
-        // Initialize player1 based on whether they are human or AI
-        if (isPlayerOneHuman) {
-            player1 = new HumanPlayer(true); // Player 1 is human
-        } else {
-            player1 = AIPlayer.createAIPlayer("GreedyAI", true); // Player 1 is AI (e.g., GreedyAI)
-        }
+        // Initialize players
+        this.player1 = isPlayerOneHuman ? new HumanPlayer(true) : AIPlayer.createAIPlayer("GreedyAI", true);
+        this.player2 = AIPlayer.createAIPlayer(player2AIType, false);
 
-        // Initialize player2 as an AI (or human if you want to make both players human)
-        player2 = AIPlayer.createAIPlayer(player2AIType, false); // Player 2 AI (e.g., RandomAI)
+        // Initialize the board with starting positions
+        initializeBoard();
+    }
 
-        // Set the "isPlayerOne" flag for player1
-        player1.isPlayerOne = true;
-
-        // Set the "isPlayerOne" flag for player2
-        player2.isPlayerOne = false;
-
-        // Initialize the board with the starting positions
+    private void initializeBoard() {
         board[3][3] = new SimpleDisc(player1);
         board[4][4] = new SimpleDisc(player1);
         board[3][4] = new SimpleDisc(player2);
         board[4][3] = new SimpleDisc(player2);
+        locate_disc(new Position(3, 3), new SimpleDisc(player1));
+        locate_disc(new Position(4, 4), new SimpleDisc(player1));
+        locate_disc(new Position(3, 4), new SimpleDisc(player2));
+        locate_disc(new Position(4, 3), new SimpleDisc(player2));
     }
 
     @Override
     public boolean locate_disc(Position position, Disc disc) {
         if (isValidMove(position)) {
-            // Clear the current flipped discs list for the new move
             currentFlippedDiscs.clear();
-
             Stack<Disc> flippedDiscsStack = applyMove(position, disc);
             currentFlippedDiscs.addAll(flippedDiscsStack);
 
-            // Add move to history, without flipped discs in Move class
             moveHistory.add(new Move(firstPlayerTurn ? player1 : player2, disc, position));
-
-            // Print each flipped disc
-            for (Disc flippedDisc : currentFlippedDiscs) {
-                System.out.printf("Player %d flipped a disc at (%d, %d)%n",
-                        flippedDisc.getOwner() == player1 ? 1 : 2,
-                        flippedDisc.getClass().getSimpleName(),
-                        position.getRow(),
-                        position.getColumn());
-            }
-
             firstPlayerTurn = !firstPlayerTurn;
             return true;
         }
@@ -92,7 +75,7 @@ public class GameLogic extends Position implements PlayableLogic {
                     break;
                 if (neighborDisc.getOwner() == disc.getOwner()) {
                     flippedDiscs.addAll(tempFlipped);
-                    currentFlippedDiscs.addAll(tempFlipped); // Add flipped discs to the global list
+                    currentFlippedDiscs.addAll(tempFlipped);
                     for (Disc flipDisc : tempFlipped) {
                         flipDisc.setOwner(disc.getOwner());
                     }
@@ -140,22 +123,12 @@ public class GameLogic extends Position implements PlayableLogic {
     @Override
     public int countFlips(Position position) {
         int flips = 0;
-        Disc currentDisc = getDiscAtPosition(position);
 
-        // Ensure currentDisc is not null before proceeding
-        if (currentDisc == null) {
-            return flips; // Return 0 flips if there's no disc at the position
-        }
-
-        Player currentPlayer = currentDisc.getOwner();
-
-        // Direction vectors for checking in all 8 possible directions
         int[][] directions = {
                 { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 },
                 { -1, -1 }, { -1, 1 }, { 1, -1 }, { 1, 1 }
         };
 
-        // Check each direction for valid flips
         for (int[] dir : directions) {
             int row = position.getRow();
             int col = position.getColumn();
@@ -165,36 +138,21 @@ public class GameLogic extends Position implements PlayableLogic {
                 row += dir[0];
                 col += dir[1];
 
-                // Check if the position is out of bounds
-                if (row < 0 || row >= board.length || col < 0 || col >= board.length) {
-                    break; // Exit the loop if out of bounds
-                }
+                if (row < 0 || row >= board.length || col < 0 || col >= board.length)
+                    break;
 
                 Disc neighborDisc = getDiscAtPosition(new Position(row, col));
-
-                // If the neighbor is null, break out of the loop
-                if (neighborDisc == null) {
+                if (neighborDisc == null || neighborDisc instanceof UnflippableDisc)
                     break;
-                }
 
-                // If the neighbor's owner is the same as the current player's, count flips
-                if (neighborDisc.getOwner().equals(currentPlayer)) {
+                if (neighborDisc.getOwner() == (firstPlayerTurn ? player1 : player2)) {
                     flips += tempFlips;
-                    break; // Found a valid flip sequence, break out of the loop
-                }
-
-                // If the neighbor is an UnflippableDisc, stop
-                if (neighborDisc instanceof UnflippableDisc) {
+                    break;
+                } else if (neighborDisc instanceof BombDisc) {
+                    flips += countAdjacentFlips(new Position(row, col));
                     break;
                 }
 
-                // If the neighbor is a BombDisc, consider adjacent flips
-                if (neighborDisc instanceof BombDisc) {
-                    flips += countAdjacentFlips(new Position(row, col));
-                    break; // Exit after handling BombDisc
-                }
-
-                // Otherwise, continue counting potential flips
                 tempFlips++;
             }
         }
@@ -249,12 +207,14 @@ public class GameLogic extends Position implements PlayableLogic {
 
     @Override
     public void reset() {
+        // Reset the board and reinitialize it with the starting positions
         for (int row = 0; row < board.length; row++) {
             for (int col = 0; col < board[row].length; col++)
                 board[row][col] = null;
         }
         moveHistory.clear();
         firstPlayerTurn = true;
+        initializeBoard(); // Reinitialize the board to the starting state
     }
 
     @Override
@@ -264,16 +224,13 @@ public class GameLogic extends Position implements PlayableLogic {
             Position lastMovePosition = lastMove.position();
             board[lastMovePosition.getRow()][lastMovePosition.getColumn()] = null;
 
-            // Restore the flipped discs from the GameLogic's list
+            // Restore the ownership of the flipped discs
             for (Disc flippedDisc : currentFlippedDiscs) {
                 flippedDisc.setOwner(lastMove.getPlayer() == player1 ? player2 : player1);
             }
 
-            // Reset flipped discs list after undo
             currentFlippedDiscs.clear();
-
             firstPlayerTurn = !firstPlayerTurn;
         }
     }
-
 }
