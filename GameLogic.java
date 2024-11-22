@@ -1,6 +1,4 @@
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 
 public class GameLogic extends Position implements PlayableLogic {
     private Disc[][] board;
@@ -9,6 +7,7 @@ public class GameLogic extends Position implements PlayableLogic {
     private Player player1;
     private Player player2;
     private List<Disc> currentFlippedDiscs;
+    private int tempCount;
 
     public GameLogic() {
         this(8, 0, 0, true, "GreedyAI"); // Default: Player 1 human, Player 2 is GreedyAI
@@ -44,7 +43,7 @@ public class GameLogic extends Position implements PlayableLogic {
     public boolean locate_disc(Position position, Disc disc) {
         if (isValidMove(position)) {
             currentFlippedDiscs.clear();
-            Stack<Disc> flippedDiscsStack = applyMove(position, disc);
+            Stack<Disc> flippedDiscsStack = applyMove(position, disc, false);
             currentFlippedDiscs.addAll(flippedDiscsStack);
 
             moveHistory.add(new Move(firstPlayerTurn ? player1 : player2, disc, position));
@@ -54,9 +53,15 @@ public class GameLogic extends Position implements PlayableLogic {
         return false;
     }
 
-    private Stack<Disc> applyMove(Position position, Disc disc) {
+    private Stack<Disc> applyMove(Position position, Disc disc, boolean returnCountOnly) {
         Stack<Disc> flippedDiscs = new Stack<>();
-        board[position.getRow()][position.getColumn()] = disc;
+        int flippedCount = 0; // To count flipped discs
+        if (!returnCountOnly){
+            board[position.getRow()][position.getColumn()] = disc;
+            String format = String.format("Player 1 placed a %s in %s", disc.getType(), position.toString());
+            System.out.println(format);
+        }
+
 
         // Check in all directions
         int[][] directions = {
@@ -66,29 +71,69 @@ public class GameLogic extends Position implements PlayableLogic {
 
         for (int[] dir : directions) {
             List<Disc> tempFlipped = new ArrayList<>();
+            List<Position> bombPos = new ArrayList<>();
             int row = position.getRow() + dir[0];
             int col = position.getColumn() + dir[1];
 
-            while (row >= 0 && row < board.length && col >= 0 && col < board.length) {
+            while (row >= 0 && row < board.length && col >= 0 && col < board[row].length) {
                 Disc neighborDisc = getDiscAtPosition(new Position(row, col));
-                if (neighborDisc == null || neighborDisc instanceof UnflippableDisc)
+                if (neighborDisc == null || neighborDisc instanceof UnflippableDisc) {
                     break;
-                if (neighborDisc.getOwner() == disc.getOwner()) {
-                    flippedDiscs.addAll(tempFlipped);
-                    currentFlippedDiscs.addAll(tempFlipped);
-                    for (Disc flipDisc : tempFlipped) {
-                        flipDisc.setOwner(disc.getOwner());
+                }
+                if (neighborDisc.getOwner() == (firstPlayerTurn ? player1 : player2)) {
+                    for (Position pos : bombPos) {
+                        Set<Disc> discFlipedByBomb = new HashSet<>();
+                        bombFliped(pos, discFlipedByBomb);
+                        tempFlipped.addAll(discFlipedByBomb);
+                    }
+                    flippedCount += tempFlipped.size();
+                    if (!returnCountOnly) {  // Only flip discs if not counting
+                        flippedDiscs.addAll(tempFlipped);
+                        currentFlippedDiscs.addAll(tempFlipped);
+                        for (Disc flipDisc : tempFlipped) {
+                            flipDisc.setOwner(firstPlayerTurn ? player1 : player2);
+                        }
                     }
                     break;
-                } else {
+                }
+                else {
                     tempFlipped.add(neighborDisc);
+                    if (neighborDisc instanceof BombDisc){bombPos.add(new Position(row, col));}
                 }
 
                 row += dir[0];
                 col += dir[1];
             }
         }
-        return flippedDiscs;
+
+        if (returnCountOnly) {
+            this.tempCount = flippedCount;
+            return new Stack<>(); // Return an empty stack if counting
+        }
+
+        return flippedDiscs; // Return the stack of flipped discs
+    }
+
+
+    public void bombFliped(Position pos,Set<Disc> toFlip){
+        int[][] directions = {
+                { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 },
+                { -1, -1 }, { -1, 1 }, { 1, -1 }, { 1, 1 }
+        };
+        int row = pos.getRow();
+        int col = pos.col();
+        for (int[] dire: directions) {
+            try{
+                Disc fliped = getDiscAtPosition(new Position(row + dire[0], col + dire[1]));
+                if ((fliped.getOwner() != (firstPlayerTurn ? player1 : player2)) && !(fliped instanceof UnflippableDisc)){
+                    boolean added = toFlip.add(fliped);
+                    if ((fliped instanceof BombDisc) && (added)){
+                        bombFliped(new Position(row + dire[0], col + dire[1]), toFlip);
+                    }
+                }
+            }catch (NullPointerException ignored){}
+
+        }
     }
 
     @Override
@@ -117,66 +162,14 @@ public class GameLogic extends Position implements PlayableLogic {
     private boolean isValidMove(Position position) {
         if (getDiscAtPosition(position) != null)
             return false;
-        return countFlips(position) > 0;
+        applyMove(position, null, true);
+        return (this.tempCount> 0);
     }
 
     @Override
     public int countFlips(Position position) {
-        int flips = 0;
-
-        int[][] directions = {
-                { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 },
-                { -1, -1 }, { -1, 1 }, { 1, -1 }, { 1, 1 }
-        };
-
-        for (int[] dir : directions) {
-            int row = position.getRow();
-            int col = position.getColumn();
-            int tempFlips = 0;
-
-            while (true) {
-                row += dir[0];
-                col += dir[1];
-
-                if (row < 0 || row >= board.length || col < 0 || col >= board.length)
-                    break;
-
-                Disc neighborDisc = getDiscAtPosition(new Position(row, col));
-                if (neighborDisc == null || neighborDisc instanceof UnflippableDisc)
-                    break;
-
-                if (neighborDisc.getOwner() == (firstPlayerTurn ? player1 : player2)) {
-                    flips += tempFlips;
-                    break;
-                } else if (neighborDisc instanceof BombDisc) {
-                    flips += countAdjacentFlips(new Position(row, col));
-                    break;
-                }
-
-                tempFlips++;
-            }
-        }
-        return flips;
-    }
-
-    private int countAdjacentFlips(Position position) {
-        int flips = 0;
-        int[][] directions = {
-                { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 },
-                { -1, -1 }, { -1, 1 }, { 1, -1 }, { 1, 1 }
-        };
-
-        for (int[] dir : directions) {
-            int row = position.getRow() + dir[0];
-            int col = position.getColumn() + dir[1];
-
-            if (row >= 0 && row < board.length && col >= 0 && col < board.length) {
-                Disc neighborDisc = getDiscAtPosition(new Position(row, col));
-                if (neighborDisc != null && neighborDisc.getOwner() != null)
-                    flips++;
-            }
-        }
-        return flips;
+        applyMove(position,null, true);
+        return this.tempCount;
     }
 
     @Override

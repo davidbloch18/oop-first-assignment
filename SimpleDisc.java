@@ -22,4 +22,6 @@ public class SimpleDisc implements Disc {
         return type;
     }
 
+
+
 }
