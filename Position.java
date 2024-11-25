@@ -33,10 +33,8 @@ public class Position {
 
     @Override
     public String toString() {
-        return "Position{" +
-                "row=" + row +
-                ", column=" + column +
-                '}';
+        String format = String.format("(%d,%d)", row, column);
+        return format;
     }
 
     @Override
