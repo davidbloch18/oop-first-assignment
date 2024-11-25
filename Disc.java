@@ -25,6 +25,6 @@ public interface Disc {
      * respectively.
      */
     String getType();
-
+    Disc clone();
 
 }

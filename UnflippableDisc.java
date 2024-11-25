@@ -1,6 +1,6 @@
-public class UnflippableDisc implements Disc {
-    private Player owner;
-    private String type;
+public class UnflippableDisc implements Disc, Cloneable {
+    private final Player owner;
+    private final String type;
 
     public UnflippableDisc(Player owner) {
         this.owner = owner;
@@ -8,18 +8,22 @@ public class UnflippableDisc implements Disc {
     }
 
     @Override
-    public Player getOwner() {
-        return owner;
-    }
+    public Player getOwner() {return owner;}
 
     @Override
-    public void setOwner(Player player) {
-        this.owner = player;
-    }
-
+    public void setOwner(Player player){};
     @Override
     public String getType() {
         return type;
     }
+    @Override
+    public UnflippableDisc clone() {
+        try {
+            return (UnflippableDisc) super.clone(); // Call super.clone()
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e); // Handle the exception
+        }
+    }
 
 }
+

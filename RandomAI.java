@@ -17,7 +17,6 @@ public class RandomAI extends AIPlayer {
 
         Position chosenPosition = validPositions.get(random.nextInt(validPositions.size()));
         Disc chosenDisc;
-
         // Randomly select a disc type, respecting the limits for bombs and unflippable
         // discs
         int discChoice = random.nextInt(3); // 0: Simple, 1: Bomb, 2: Unflippable
@@ -33,7 +32,6 @@ public class RandomAI extends AIPlayer {
             // Default to SimpleDisc if limits reached
             chosenDisc = new SimpleDisc(this);
         }
-
-        return new Move(this, chosenDisc, chosenPosition);
+        return new Move(null, chosenDisc, chosenPosition);
     }
 }

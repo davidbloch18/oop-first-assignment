@@ -1,6 +1,6 @@
-public class BombDisc implements Disc {
+public class BombDisc implements Disc, Cloneable {
     private Player owner;
-    private String type;
+    private final String type;
 
     public BombDisc(Player owner) {
         this.owner = owner;
@@ -21,4 +21,13 @@ public class BombDisc implements Disc {
     public String getType() {
         return type;
     }
+    @Override
+    public UnflippableDisc clone() {
+        try {
+            return (UnflippableDisc) super.clone(); // Call super.clone()
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e); // Handle the exception
+        }
+    }
+
 }

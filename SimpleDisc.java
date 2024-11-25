@@ -1,4 +1,4 @@
-public class SimpleDisc implements Disc {
+public class SimpleDisc implements Disc, Cloneable {
     private Player owner;
     private String type;
 
@@ -22,6 +22,13 @@ public class SimpleDisc implements Disc {
         return type;
     }
 
-
+    @Override
+    public SimpleDisc clone() {
+        try {
+            return (SimpleDisc) super.clone(); // Call super.clone()
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e); // Handle the exception
+        }
+    }
 
 }
