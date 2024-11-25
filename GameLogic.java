@@ -129,10 +129,10 @@ public class GameLogic extends Position implements PlayableLogic {
                 // Check for null and validate ownership
                 if ((flipped != null) && (flipped.getOwner() != (firstPlayerTurn ? player1 : player2)) &&
                         !(flipped instanceof UnflippableDisc)) {
-                    boolean added = toFlip.add(board[row][col].clone()); // Clone the position to flip
+                    boolean added = toFlip.add(board[row][col]); // Clone the position to flip
                     if (flipped instanceof BombDisc && added) {
                         // If it is a BombDisc, add it to bombPos
-                        this.bombPos.add(board[row][col].clone()); // Clone the position again
+                        this.bombPos.add(board[row][col]); // Clone the position again
                     }
                 }
             }catch (IndexOutOfBoundsException ignored){}
