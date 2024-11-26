@@ -277,6 +277,11 @@ public class GameLogic extends Position implements PlayableLogic {
         if (!this.moveHistory.isEmpty()) {
 
             Move lastMove = this.moveHistory.pop();
+            System.out.println("Undoing last move:");
+            System.out.println(
+                    "\tUndo: removing "
+                            + board[lastMove.position().row()][lastMove.position().col()].getDisc().getType()
+                            + " from (" + lastMove.position().row() + ", " + lastMove.position().col() + ")");
             board[lastMove.position().row()][lastMove.position().col()].removeDisc();
             lastMove.undo();
             firstPlayerTurn = !firstPlayerTurn;

@@ -56,6 +56,7 @@ public class Move extends GameLogic {
     }
 
     public boolean undo() {
+
         this.position.removeDisc();
         try {
             for (Position pos : this.effectedPos) {
@@ -65,8 +66,7 @@ public class Move extends GameLogic {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-        System.out.println("Undoing last move:");
-        System.out.println("\tUndo: removing " + disc + " from (" + position.row() + ", " + position.col() + ")");
+
         try {
             for (Position pos : this.effectedPos) {
                 System.out.println("\tUndo: flipping back " + board[pos.row()][pos.col()].getDisc().getType() + " in ("
