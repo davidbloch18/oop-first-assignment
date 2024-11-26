@@ -8,6 +8,7 @@ public class Move extends GameLogic {
     private final int count;
     private Disc disc;
     private Position[][] board;
+
     /**
      * Constructs a Move object representing a player's move in the game.
      * 
@@ -25,10 +26,11 @@ public class Move extends GameLogic {
         this.board = board;
 
     }
-    public Move(Player player,Disc disc, Position position, Set<Position> effectedPos, Position[][] board) {
+
+    public Move(Player player, Disc disc, Position position, Set<Position> effectedPos, Position[][] board) {
         this.player = player;
         this.position = position;
-        this.effectedPos= new HashSet<>();
+        this.effectedPos = new HashSet<>();
         this.effectedPos.addAll(effectedPos);
         this.count = effectedPos.size();
         this.disc = disc;
@@ -36,7 +38,7 @@ public class Move extends GameLogic {
 
     }
 
-    public Move(Player player,Disc disc, Position position){
+    public Move(Player player, Disc disc, Position position) {
         this.player = player;
         this.position = position;
         this.effectedPos = new HashSet<>();
@@ -45,21 +47,41 @@ public class Move extends GameLogic {
         this.board = getBoard();
     }
 
-    public int getCount(){return this.count;}
+    public int getCount() {
+        return this.count;
+    }
 
-    public Set<Position> getFlips(){
+    public Set<Position> getFlips() {
         return this.effectedPos;
     }
-    public boolean undo(){
+
+    public boolean undo() {
         this.position.removeDisc();
-        try{
-            for (Position pos: this.effectedPos){
+        try {
+            for (Position pos : this.effectedPos) {
                 board[pos.row()][pos.col()].flipDisc();
             }
-        }catch (UnflippableDiscException ignored){}
-        catch (Exception e){System.out.println(e.getMessage());}
+        } catch (UnflippableDiscException ignored) {
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        System.out.println("Undoing last move:");
+        System.out.println("\tUndo: removing " + disc + " from (" + position.row() + ", " + position.col() + ")");
+        try {
+            for (Position pos : this.effectedPos) {
+                System.out.println("\tUndo: flipping back " + board[pos.row()][pos.col()].getDisc().getType() + " in ("
+                        + pos.row() + ", " + pos.col() + ")");
+                board[pos.row()][pos.col()].flipDisc();
+            }
+        } catch (UnflippableDiscException ignored) {
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        System.out.println("");
         return true;
+
     }
+
     /**
      * Gets the player who made the move.
      * 
@@ -68,8 +90,6 @@ public class Move extends GameLogic {
     public Player getPlayer() {
         return player;
     }
-
-
 
     /**
      * Gets the position of this move.
@@ -82,9 +102,8 @@ public class Move extends GameLogic {
 
     @Override
     public String toString() {
-        return "Move by " + player + " at " + position + " with "  + " disc";
+        return "Move by " + player + " at " + position + " with " + " disc";
     }
-
 
     public Disc disc() {
         return this.disc;

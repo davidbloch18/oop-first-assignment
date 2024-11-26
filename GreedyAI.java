@@ -22,7 +22,9 @@ public class GreedyAI extends AIPlayer {
         for (Position position : validPositions) {
             int flipsForSimple = gameStatus.countFlips(position);
 
-            if (flipsForSimple > maxFlips) {
+            if (flipsForSimple >= maxFlips) { // added the "=" sign to make the AI go in default to lowest right (if
+                                              // more than 2 positions have the same flips count)
+                                              // position
                 maxFlips = flipsForSimple;
                 bestPosition = position;
                 bestDisc = new SimpleDisc(this);

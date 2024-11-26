@@ -1,6 +1,7 @@
+
 public class Position implements Cloneable {
     private final int row;
-    private final int  col;
+    private final int col;
     private Disc disc;
     private Player player1;
     private Player player2;
@@ -18,33 +19,40 @@ public class Position implements Cloneable {
         this.col = col;
     }
 
-    //placing a new disc in the position
+    // placing a new disc in the position
     public boolean setDisc(Disc disc) throws OccupiedPositionException {
-        if(this.disc == null){
-            try{
+        if (this.disc == null) {
+            try {
                 this.disc = disc;
                 return true;
-            }catch (Exception e){System.out.println(e.getMessage());}
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
         }
-        //if position is not empty, returns false
+        // if position is not empty, returns false
         throw new OccupiedPositionException("this position is not empty");
     }
 
-    public boolean removeDisc(){
-        try{
+    public boolean removeDisc() {
+        try {
             this.disc = null;
-        }catch(Exception e){System.out.println(e.getMessage());}
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
         return true;
     }
 
-    public Disc getDisc(){return this.disc;}
+    public Disc getDisc() {
+        return this.disc;
+    }
 
-    public boolean flipDisc() throws UnflippableDiscException{
-        try{
-            this.disc.setOwner(disc.getOwner().isPlayerOne? player2: player1);
+    public boolean flipDisc() throws UnflippableDiscException {
+        try {
+            this.disc.setOwner(disc.getOwner().isPlayerOne ? player2 : player1);
             return true;
+        } catch (Exception e) {
+            System.out.println(this.row + "," + this.col + "position: " + e.getMessage());
         }
-        catch (Exception e){System.out.println(this.row +"," + this.col + "position: " + e.getMessage());}
         if (disc instanceof UnflippableDisc) {
             throw new UnflippableDiscException("Cannot change owner of an UnflippableDisc.");
         }
@@ -54,6 +62,7 @@ public class Position implements Cloneable {
     public int getRow() {
         return row;
     }
+
     public int getCol() {
         return col;
     }
@@ -86,7 +95,8 @@ public class Position implements Cloneable {
     public Position clone() {
         try {
             Position clone = (Position) super.clone();
-            // TODO: copy mutable state here, so the clone can't change the internals of the original
+            // TODO: copy mutable state here, so the clone can't change the internals of the
+            // original
             return clone;
         } catch (CloneNotSupportedException e) {
             throw new AssertionError();

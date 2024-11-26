@@ -1,7 +1,7 @@
 import java.util.*;
 
 public class GameLogic extends Position implements PlayableLogic {
-    private Position[][]  board;
+    private Position[][] board;
     // Check in all directions
     private final int[][] directions = {
             { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 },
@@ -31,51 +31,54 @@ public class GameLogic extends Position implements PlayableLogic {
         this.player1 = isPlayerOneHuman ? new HumanPlayer(true) : AIPlayer.createAIPlayer("GreedyAI", true);
         this.player2 = AIPlayer.createAIPlayer(player2AIType, false);
 
-
-
         // Initialize the board with starting positions
         initializeBoard();
     }
 
     private void initializeBoard() {
-        for(int row= 0; row<board.length; row++){
-            for(int col= 0; col<board.length; col++){
+        for (int row = 0; row < board.length; row++) {
+            for (int col = 0; col < board.length; col++) {
                 board[row][col] = new Position(row, col, player1, player2);
             }
         }
-        try{
+        try {
             board[3][3].setDisc(new SimpleDisc(player1));
             board[4][4].setDisc(new SimpleDisc(player1));
             board[3][4].setDisc(new SimpleDisc(player2));
             board[4][3].setDisc(new SimpleDisc(player2));
 
-        }catch (OccupiedPositionException ignored){}
+        } catch (OccupiedPositionException ignored) {
+        }
     }
 
     @Override
     public boolean locate_disc(Position position, Disc disc) {
-            possibleNextMoves.clear();
-            if (isValidMove(position)){
-                try{
-                    disc.setOwner(firstPlayerTurn ? player1 : player2);
-                    Move nextMove = calculateNextMove(position, firstPlayerTurn ? player1 : player2);
-                    board[position.row()][position.col()].setDisc(disc);
-                    System.out.printf("%s placed a %s in %s\n", firstPlayerTurn ? "player1" : "player2", disc.getType(),position.toString());
-                    for (Position pos:nextMove.getFlips()) {
-                        System.out.printf("%s flliped the %s in %s\n", firstPlayerTurn ? "player1" : "player2",board[pos.row()][pos.col()].getDisc().getType(), board[pos.row()][pos.col()].toString() );
-                        pos.flipDisc();
-                    }
-                    moveHistory.push(nextMove);
-                    System.out.println();
-                }catch (Exception e){System.out.println(e.getMessage());}
-                firstPlayerTurn = !firstPlayerTurn;
-                return true;
+        possibleNextMoves.clear();
+        if (isValidMove(position)) {
+            try {
+                disc.setOwner(firstPlayerTurn ? player1 : player2);
+                Move nextMove = calculateNextMove(position, firstPlayerTurn ? player1 : player2);
+                board[position.row()][position.col()].setDisc(disc);
+                System.out.printf("%s placed a %s in %s\n", firstPlayerTurn ? "player1" : "player2", disc.getType(),
+                        position.toString());
+                for (Position pos : nextMove.getFlips()) {
+                    System.out.printf("%s flliped the %s in %s\n", firstPlayerTurn ? "player1" : "player2",
+                            board[pos.row()][pos.col()].getDisc().getType(), board[pos.row()][pos.col()].toString());
+                    pos.flipDisc();
+                }
+                moveHistory.push(nextMove);
+                System.out.println();
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
             }
-            return false;
+            firstPlayerTurn = !firstPlayerTurn;
+            return true;
+        }
+        return false;
     }
 
-    //creating a new move for position
-    public Move calculateNextMove(Position newDiscPos, Player movePlayer){
+    // creating a new move for position
+    public Move calculateNextMove(Position newDiscPos, Player movePlayer) {
         Set<Position> flippedPos = new HashSet<>();
         for (int[] dir : directions) {
             Set<Position> tempFlipped = new HashSet<>();
@@ -90,54 +93,73 @@ public class GameLogic extends Position implements PlayableLogic {
                         break;
                     }
                     if (neighborDisc.getOwner() == movePlayer) {
-                            for (Position bomb: bombPos) {
-                                tempFlipped.addAll(bombFlipped(bomb));
-                            }
+                        for (Position bomb : bombPos) {
+                            tempFlipped.addAll(bombFlipped(bomb));
+                        }
                         flippedPos.addAll(tempFlipped);
                         break;
-                    }
-                    else {
-                        if(!(neighborDisc instanceof UnflippableDisc)){
+                    } else {
+                        if (!(neighborDisc instanceof UnflippableDisc)) {
                             tempFlipped.add(board[row][col]);
-                            if (neighborDisc instanceof BombDisc){
+                            if (neighborDisc instanceof BombDisc) {
                                 bombPos.add(board[row][col].clone());
                             }
                         }
                     }
                     row += dir[0];
                     col += dir[1];
-                }catch (NullPointerException ignored){}
+                } catch (NullPointerException ignored) {
+                }
             }
         }
-        Move possibleNextMove = new Move(movePlayer,null, newDiscPos, flippedPos, this.board);
+        Move possibleNextMove = new Move(movePlayer, null, newDiscPos, flippedPos, this.board);
         this.tempCount = Math.max(possibleNextMove.getCount(), this.tempCount);
         return possibleNextMove;
     }
 
     public Set<Position> bombFlipped(Position pos) {
         Set<Position> toFlip = new HashSet<>();
+        Queue<Position> toProcess = new LinkedList<>();
+        Set<Position> visited = new HashSet<>();
 
-        for (int[] dir : directions) {
-            int row = pos.row() + dir[0];
-            int col = pos.col() + dir[1];
+        // Start with the initial bomb position
+        toProcess.add(pos);
 
-            // Check if the new row and column are within the bounds of the board
-            try {
-                // Get the disc at the position
-                Disc flipped = board[row][col].getDisc();
+        while (!toProcess.isEmpty()) {
+            Position current = toProcess.poll();
 
-                // Check for null and validate ownership
-                if ((flipped != null) && (flipped.getOwner() != (firstPlayerTurn ? player1 : player2)) &&
-                        !(flipped instanceof UnflippableDisc)) {
-                    boolean added = toFlip.add(board[row][col]); // Clone the position to flip
-                    if (flipped instanceof BombDisc && added) {
-                        // If it is a BombDisc, add it to bombPos
-                        this.bombPos.add(board[row][col]); // Clone the position again
+            // Skip already processed positions
+            if (visited.contains(current))
+                continue;
+
+            visited.add(current);
+
+            for (int[] dir : directions) {
+                int row = current.row() + dir[0];
+                int col = current.col() + dir[1];
+
+                // Ensure the position is within bounds
+                if (row >= 0 && row < board.length && col >= 0 && col < board[row].length) {
+                    Position neighbor = board[row][col];
+                    Disc neighborDisc = neighbor.getDisc();
+
+                    if (neighborDisc != null
+                            && neighborDisc.getOwner() != (firstPlayerTurn ? player1 : player2)
+                            && !(neighborDisc instanceof UnflippableDisc)) {
+
+                        // Add the neighbor to the set of discs to flip
+                        toFlip.add(neighbor);
+
+                        // If it's a BombDisc, add it to the processing queue for chain reaction
+                        if (neighborDisc instanceof BombDisc) {
+                            toProcess.add(neighbor);
+                        }
                     }
                 }
-            }catch (IndexOutOfBoundsException ignored){}
+            }
         }
-        return toFlip; // Return the set of positions to be flipped
+
+        return toFlip;
     }
 
     @Override
@@ -167,19 +189,23 @@ public class GameLogic extends Position implements PlayableLogic {
         if (getDiscAtPosition(position) != null)
             return false;
 
-        try{
+        try {
             Move nextMove = calculateNextMove(position, firstPlayerTurn ? player1 : player2);
             return (nextMove.getCount() > 0);
-        }catch (Exception e){System.out.println(e.getMessage());}
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
         return false;
     }
 
     @Override
     public int countFlips(Position position) {
-        try{
+        try {
             Move nextMove = calculateNextMove(position, firstPlayerTurn ? player1 : player2);
             return nextMove.getCount();
-        }catch (Exception e){System.out.println(e.getMessage());}
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
         return 0;
     }
 
@@ -206,7 +232,32 @@ public class GameLogic extends Position implements PlayableLogic {
 
     @Override
     public boolean isGameFinished() {
-        return ValidMoves().isEmpty();
+        if (ValidMoves().isEmpty()) {
+            int player1Discs = getNumberOfDiscs(player1);
+            int player2Discs = getNumberOfDiscs(player2);
+            if (player1Discs >= player2Discs) {
+                player1.addWin();
+                System.out.println(
+                        "Player 1 wins with " + player1Discs + " discs! Player 2 had " + player2Discs + " discs.");
+            } else {
+                player2.addWin();
+                System.out.println(
+                        "Player 2 wins with " + player2Discs + " discs! Player 1 had " + player1Discs + " discs.");
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private int getNumberOfDiscs(Player player) {
+        int count = 0;
+        for (int row = 0; row < board.length; row++) {
+            for (int col = 0; col < board[row].length; col++) {
+                if (board[row][col].getDisc() != null && board[row][col].getDisc().getOwner() == player)
+                    count++;
+            }
+        }
+        return count;
     }
 
     @Override
@@ -230,9 +281,14 @@ public class GameLogic extends Position implements PlayableLogic {
             lastMove.undo();
             firstPlayerTurn = !firstPlayerTurn;
 
+        } else {
+            reset();// very bad solution but is working. (the 4 pos of the start wont flipped back
+                    // when undo called so reset instead)
+            System.out.println("\tNo previous move available to undo ");
         }
     }
-    public Position[][] getBoard(){
+
+    public Position[][] getBoard() {
         return this.board;
     }
 
