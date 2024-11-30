@@ -309,6 +309,8 @@ public class GameLogic extends Position implements PlayableLogic {
             for (int col = 0; col < board[row].length; col++)
                 board[row][col] = null;
         }
+        player1.reset_bombs_and_unflippedable();
+        player2.reset_bombs_and_unflippedable();
         moveHistory.clear();
         firstPlayerTurn = true;
         initializeBoard(); // Reinitialize the board to the starting state
@@ -317,15 +319,33 @@ public class GameLogic extends Position implements PlayableLogic {
     @Override
     public void undoLastMove() {
         if (!this.moveHistory.isEmpty()) {
-
             Move lastMove = this.moveHistory.pop();
             System.out.println("Undoing last move:");
-            System.out.println(
-                    "\tUndo: removing "
-                            + board[lastMove.position().row()][lastMove.position().col()].getDisc().getType()
-                            + " from (" + lastMove.position().row() + ", " + lastMove.position().col() + ")");
-            board[lastMove.position().row()][lastMove.position().col()].removeDisc();
+
+            // Get the player who made the last move
+            Player lastPlayer = firstPlayerTurn ? player2 : player1;
+
+            // Remove the placed disc
+            Disc lastDisc = board[lastMove.position().row()][lastMove.position().col()].getDisc();
+            if (lastDisc != null) {
+                System.out.println(
+                        "\tUndo: removing " + lastDisc.getType() +
+                                " from (" + lastMove.position().row() + ", " + lastMove.position().col() + ")");
+
+                board[lastMove.position().row()][lastMove.position().col()].removeDisc();
+
+                // Restore special disc counters
+                if (lastDisc instanceof BombDisc) {
+                    lastPlayer.increase_bomb();
+                } else if (lastDisc instanceof UnflippableDisc) {
+                    lastPlayer.increase_unflippedable();
+                }
+            }
+
+            // Undo the flips
             lastMove.undo();
+
+            // Switch turn back to the player who made the last move
             firstPlayerTurn = !firstPlayerTurn;
 
         } else {
