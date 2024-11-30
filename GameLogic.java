@@ -54,27 +54,69 @@ public class GameLogic extends Position implements PlayableLogic {
     @Override
     public boolean locate_disc(Position position, Disc disc) {
         possibleNextMoves.clear();
-        if (isValidMove(position)) {
-            try {
-                disc.setOwner(firstPlayerTurn ? player1 : player2);
-                Move nextMove = calculateNextMove(position, firstPlayerTurn ? player1 : player2);
-                board[position.row()][position.col()].setDisc(disc);
-                System.out.printf("%s placed a %s in %s\n", firstPlayerTurn ? "player1" : "player2", disc.getType(),
-                        position.toString());
-                for (Position pos : nextMove.getFlips()) {
-                    System.out.printf("%s flliped the %s in %s\n", firstPlayerTurn ? "player1" : "player2",
-                            board[pos.row()][pos.col()].getDisc().getType(), board[pos.row()][pos.col()].toString());
-                    pos.flipDisc();
-                }
-                moveHistory.push(nextMove);
-                System.out.println();
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
+
+        // Determine the current player
+        Player currentPlayer = firstPlayerTurn ? player1 : player2;
+
+        // Check if the special disc can be placed
+        if (disc instanceof BombDisc) {
+            if (currentPlayer.getNumber_of_bombs() <= 0) {
+                System.out.println("No bombs remaining for the current player.");
+                return false;
             }
-            firstPlayerTurn = !firstPlayerTurn;
-            return true;
+        } else if (disc instanceof UnflippableDisc) {
+            if (currentPlayer.getNumber_of_unflippedable() <= 0) {
+                System.out.println("No unflippable discs remaining for the current player.");
+                return false;
+            }
         }
-        return false;
+
+        // Validate the move
+        if (!isValidMove(position)) {
+            System.out.println("Invalid move: The position is either occupied or cannot flip any discs.");
+            return false;
+        }
+
+        // Try placing the disc and updating the board
+        try {
+            // Assign ownership to the disc
+            disc.setOwner(currentPlayer);
+
+            // Calculate the move, including flipped positions
+            Move nextMove = calculateNextMove(position, currentPlayer);
+
+            // Place the disc
+            board[position.row()][position.col()].setDisc(disc);
+            System.out.printf("%s placed a %s at %s%n", currentPlayer.isPlayerOne() ? "Player 1" : "Player 2",
+                    disc.getClass().getSimpleName(), position.toString());
+
+            // Flip the discs affected by this move
+            for (Position flipPos : nextMove.getFlips()) {
+                System.out.printf("%s flipped the %s at %s%n",
+                        currentPlayer.isPlayerOne() ? "Player 1" : "Player 2",
+                        board[flipPos.row()][flipPos.col()].getDisc().getClass().getSimpleName(),
+                        flipPos.toString());
+                flipPos.flipDisc();
+            }
+
+            // Reduce special disc counters if applicable
+            if (disc instanceof BombDisc) {
+                currentPlayer.reduce_bomb();
+
+            } else if (disc instanceof UnflippableDisc) {
+                currentPlayer.reduce_unflippedable();
+
+            }
+
+            // Save the move in history and switch the turn
+            moveHistory.push(nextMove);
+            firstPlayerTurn = !firstPlayerTurn;
+
+            return true;
+        } catch (Exception e) {
+            System.out.println("An error occurred while placing the disc: " + e.getMessage());
+            return false;
+        }
     }
 
     // creating a new move for position
